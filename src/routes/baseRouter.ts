@@ -1,22 +1,25 @@
 import { Router } from "express";
-import { logger } from "../utils";
+import { logger, StandardResponse } from "../utils";
+import { authRouter } from "../modules/auth";
 
 class BaseRouter {
-    private static router: Router = Router();
+    private readonly router: Router = Router();
     
     constructor() {
         this.setupRoutes();
     }
 
     public getRouter(): Router {
-        return BaseRouter.router;
+        return this.router;
     }
 
     public setupRoutes(): void {
-        BaseRouter.router.get('/health', (req, res) => {
+        this.router.get('/health', (req, res) => {
             logger.info('Health check endpoint hit');
-            res.status(200).json({ status: 'ok' });
+            return StandardResponse.success(res, { status: 'ok' });
         });
+
+        this.router.use('/auth', authRouter);
     }
 }
 
