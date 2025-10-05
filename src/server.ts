@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { logger } from './utils';
-import BaseRouter from './routes/baseRouter';
+import router from './routes/baseRouter';
 
 // Load environment variables
 dotenv.config();
@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(BaseRouter.getRouter());
+app.use(router.getRouter());
 
 app.listen(port, () => {
   logger.info(`🚀 API server running on port ${port}`);

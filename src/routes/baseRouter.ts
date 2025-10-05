@@ -8,7 +8,7 @@ class BaseRouter {
         this.setupRoutes();
     }
 
-    public static getRouter(): Router {
+    public getRouter(): Router {
         return BaseRouter.router;
     }
 
@@ -20,4 +20,4 @@ class BaseRouter {
     }
 }
 
-export default BaseRouter;
+export default new BaseRouter();
