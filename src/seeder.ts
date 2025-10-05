@@ -14,9 +14,31 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
+async function waitForDatabase(maxRetries = 30, delayMs = 2000): Promise<void> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const client = await pool.connect();
+      await client.query("SELECT 1");
+      client.release();
+      logger.info("✅ Database is reachable. Proceeding with migrations.");
+      return;
+    } catch (error) {
+      attempt += 1;
+      const wait = Math.min(delayMs * attempt, 5000);
+      logger.info(
+        `⏳ Waiting for database... attempt ${attempt}/${maxRetries} (retrying in ${wait}ms)`
+      );
+      await new Promise((res) => setTimeout(res, wait));
+    }
+  }
+  throw new Error("Database not reachable after multiple attempts");
+}
+
 const MIGRATIONS_DIR = path.join(__dirname, "..", "migrations");
 
 async function runMigrations() {
+  await waitForDatabase();
   const client = await pool.connect();
 
   try {
