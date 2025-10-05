@@ -4,11 +4,13 @@
   "description": "Backend API for Linkup - A social media platform",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "npm run migrate && nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "clean": "rimraf dist",
-    "prebuild": "npm run clean"
+    "migrate": "node dist/seeder.js",
+    "prebuild": "npm run clean",
+    "prestart": "npm run migrate"
   },
   "keywords": [
     "social media",
