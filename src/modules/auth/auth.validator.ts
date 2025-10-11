@@ -20,8 +20,8 @@ export class AuthValidator {
                 errorMessage: "Last name is required",
             },
             isLength: {
-                options: { min: 2, max: 100 },
-                errorMessage: "Last name must be between 2 and 100 characters",
+                options: { min: 1, max: 100 },
+                errorMessage: "Last name must be between 1 and 100 characters",
             },
             trim: true,
         },
@@ -127,4 +127,43 @@ export class AuthValidator {
             },
         },
     };
+
+    public static generateUsernameSchema: Schema = {
+        firstName: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "First name is required",
+            },
+            isLength: {
+                options: { min: 2, max: 100 },
+                errorMessage: "First name must be between 2 and 100 characters",
+            },
+            trim: true,
+        },
+        lastName: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "Last name is required",
+            },
+            isLength: {
+                options: { min: 1, max: 100 },
+                errorMessage: "Last name must be between 1 and 100 characters",
+            },
+            trim: true,
+        },
+    };
+
+    public static validateUsernameSchema: Schema = {
+        username: {
+            in: ['body'],
+            notEmpty: {
+                errorMessage: "User name is required"
+            },
+            isLength: {
+                options: {min: 1, max: 100},
+                errorMessage: "User name must be between 1 and 100 characters",
+            },
+            trim: true,
+        }
+    }
 };
