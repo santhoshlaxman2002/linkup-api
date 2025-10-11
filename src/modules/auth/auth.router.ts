@@ -23,6 +23,16 @@ class AuthRouter {
             Validator.validate(AuthValidator.loginSchema),
             AuthController.login
         );
+        this.router.post(
+            "/generate-username",
+            Validator.validate(AuthValidator.generateUsernameSchema),
+            AuthController.generateUsername
+        );
+        this.router.post(
+            "/validate-username",
+            Validator.validate(AuthValidator.validateUsernameSchema),
+            AuthController.validateUsername
+        )
     }
 
 }

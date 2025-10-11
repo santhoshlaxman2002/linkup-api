@@ -4,7 +4,7 @@
   "description": "Backend API for Linkup - A social media platform",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "npm run migrate && nodemon src/server.ts",
+    "dev": "ts-node src/seeder.ts && nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "clean": "rimraf dist",
@@ -31,6 +31,7 @@
     "express-validator": "7.0.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.3",
+    "uuid": "^13.0.0",
     "winston": "^3.18.3"
   },
   "devDependencies": {
