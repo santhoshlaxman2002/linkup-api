@@ -1,0 +1,1 @@
+export { default as Mailjob } from './mail.queue'

@@ -2,7 +2,7 @@ import { DatabaseConnection } from "../../database/DatabaseConnection";
 import { JwtUtils, PasswordUtils, StandardResponse, logger } from "../../utils";
 import { UsersBL } from '../../businessLayer'
 import { Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
+import { Mailjob } from "../../queues";
 
 
 
@@ -15,7 +15,7 @@ class AuthController {
             const passwordHash = await PasswordUtils.hashPassword(password);
             const query = `
                 INSERT INTO users (first_name, last_name, date_of_birth, username, email, password_hash) 
-                    VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+                    VALUES ($1, $2, $3, $4, $5, $6) RETURNING id,email
             `;
             logger.debug("Inserting new user into database", { username, email });
             const result = await DatabaseConnection.query(query, [firstName, lastName, dateOfBirth, username, email, passwordHash]);
@@ -23,10 +23,9 @@ class AuthController {
                 logger.warn("User registration failed: No rows inserted", { username, email });
                 return StandardResponse.badRequest(res, "Failed to register");
             }
-            const userId = result.rows[0].id;
-            const token = JwtUtils.sign({ userId });
-            logger.info("User registered successfully", { userId, username, email });
-            return StandardResponse.success(res, { userId, token }, "Registered");
+            const { id: userId } = result.rows[0];
+            await Mailjob.addMailJob({ userId, email })
+            return StandardResponse.success(res, { userId, email }, "Registered");
         } catch (error) {
             logger.error("Error during user registration", { error, body: { ...req.body, password: undefined } });
             return StandardResponse.internalServerError(res, "An error occurred during registration", error);
@@ -57,6 +56,55 @@ class AuthController {
         } catch (error) {
             logger.error("Error during user login", { error, body: { ...req.body, password: undefined } });
             return StandardResponse.internalServerError(res, "An error occurred during login", error);
+        }
+    }
+
+    public static async confirm(req: Request, res: Response) {
+        logger.info("Confirm User endpoint called", { body: req.body });
+        try {
+            const { otp, email } = req.body;
+            logger.debug("Fetching user by email for confirmation", { email });
+            const user = await UsersBL.getUserByEmail(email);
+
+            if (!user) {
+                logger.warn("User for confirmation not found", { email });
+                return StandardResponse.unauthorized(res, "User not found");
+            }
+
+            const otpVerificationQuery = `
+                SELECT 
+                    true as "isValid"
+                FROM otp_verifications ov
+                WHERE ov.otp = $1
+                  AND ov.user_id = $2
+                  AND ov.expires_at > (current_timestamp at time zone 'utc')
+            `;
+            logger.debug("Checking OTP verification", { otp, userId: user.id });
+            const result = await DatabaseConnection.query(otpVerificationQuery, [otp, user.id]);
+            logger.debug("OTP verification result", { rowCount: result.rowCount, rows: result.rows });
+
+            if (result.rowCount === 0 || !result.rows[0].isValid) {
+                logger.warn("OTP is not valid", { otp, email, userId: user.id });
+                return StandardResponse.unauthorized(res, "OTP is not valid");
+            }
+
+            const userUpdateQuery = `
+                UPDATE users SET is_verified = true
+                WHERE id = $1
+            `;
+            logger.debug("Updating user as verified", { userId: user.id });
+            await DatabaseConnection.query(userUpdateQuery, [user.id ]);
+            const token = JwtUtils.sign({ userId: user.id });
+            logger.info("User verified and confirmed successfully", { userId: user.id });
+
+            return StandardResponse.success(res, { token }, "Account verified successfully");
+        } catch (error) {
+            logger.error("Error during user confirmation", { error, body: req.body });
+            return StandardResponse.internalServerError(
+                res,
+                "An error occurred during confirmation",
+                error
+            );
         }
     }
 
