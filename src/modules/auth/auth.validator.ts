@@ -44,9 +44,6 @@ export class AuthValidator {
                 options: { min: 3, max: 50 },
                 errorMessage: "Username must be between 3 and 50 characters",
             },
-            isAlphanumeric: {
-                errorMessage: "Username must be alphanumeric",
-            },
             trim: true,
             custom: {
                 options: async (value) => {
@@ -128,6 +125,32 @@ export class AuthValidator {
         },
     };
 
+    public static confirmSchema: Schema = {
+        otp: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "OTP is required"
+            },
+            isLength: {
+                options: { min: 6, max: 6 },
+                errorMessage: "OTP must be 6 digits"
+            },
+            isNumeric: {
+                errorMessage: "OTP must be numeric"
+            }
+        },
+        email: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "Email is required"
+            },
+            isEmail: {
+                errorMessage: "Must be a valid email"
+            },
+            trim: true,
+        }
+    };
+
     public static generateUsernameSchema: Schema = {
         firstName: {
             in: ["body"],
@@ -160,7 +183,7 @@ export class AuthValidator {
                 errorMessage: "User name is required"
             },
             isLength: {
-                options: {min: 1, max: 100},
+                options: { min: 1, max: 100 },
                 errorMessage: "User name must be between 1 and 100 characters",
             },
             trim: true,

@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Validator } from "../../middleware/validate";
 import { AuthValidator } from "./auth.validator";
-import { StandardResponse } from "../../utils";
 import AuthController from "./auth.controller";
 
 class AuthRouter {
@@ -32,6 +31,11 @@ class AuthRouter {
             "/validate-username",
             Validator.validate(AuthValidator.validateUsernameSchema),
             AuthController.validateUsername
+        )
+        this.router.post(
+            "/confirm",
+            Validator.validate(AuthValidator.confirmSchema),
+            AuthController.confirm
         )
     }
 
