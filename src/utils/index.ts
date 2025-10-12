@@ -4,3 +4,5 @@ export { StandardResponse } from './standardResponse';
 export { PasswordUtils } from './password';
 export { JwtUtils } from './jwt';
 export { sendMail } from './mailer';
+export { OtpUtils } from './otp';
+export { EmailTemplates } from './emailTemplates';
