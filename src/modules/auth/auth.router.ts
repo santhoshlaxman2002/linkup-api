@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import { Validator } from "../../middleware/validate";
 import { AuthValidator } from "./auth.validator";
 import AuthController from "./auth.controller";
@@ -36,6 +36,16 @@ class AuthRouter {
             "/confirm",
             Validator.validate(AuthValidator.confirmSchema),
             AuthController.confirm
+        )
+        this.router.post(
+            "/initiate-forgot-password",
+            Validator.validate(AuthValidator.initiateForgotPasswordSchema),
+            AuthController.initiateForgotPassword
+        )
+        this.router.post(
+            "/change-password",
+            Validator.validate(AuthValidator.changePasswordSchema),
+            AuthController.changePassword
         )
     }
 

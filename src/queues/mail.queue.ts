@@ -12,9 +12,12 @@ const mailQueue = new Queue('mail', {
     connection: redisConnection,
 });
 
+export type MailJobPayloadType = 'verify' | 'forgotpassword'
+
 interface MailJobPayload {
     userId: string,
-    email: string
+    email: string,
+    type: MailJobPayloadType
 }
 
 /**
@@ -36,8 +39,8 @@ export async function addMailJob(mailData: MailJobPayload) {
 const mailWorker = new Worker(
     'mail',
     async (job: Job) => {
-        const { userId, email } = job.data as MailJobPayload;
-        await UsersBL.generateAndSendOtp(userId, email);
+        const { userId, email, type } = job.data as MailJobPayload;
+        await UsersBL.generateAndSendOtp(userId, email, type);
     },
     {
         connection: redisConnection

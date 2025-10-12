@@ -2,6 +2,35 @@ import { DatabaseConnection } from "../../database/DatabaseConnection";
 import { Schema } from "express-validator";
 
 export class AuthValidator {
+
+    public static isValidUsernameOrEmail = (value: string) => {
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        const isUsername = /^[a-zA-Z0-9_]{3,30}$/.test(value);
+        if (!isEmail && !isUsername) {
+            throw new Error("Must be a valid email or username");
+        }
+        return true;
+    }
+
+    public static isUniqueUsername = async (value: string) => {
+        const query = `SELECT username FROM users WHERE username = $1`;
+        const result = await DatabaseConnection.query(query, [value]);
+        if (result.rowCount === 0) {
+            return true;
+        }
+        throw new Error("Username must be unique");
+    }
+
+    public static isUniqueEmail = async (value: string) => {
+        const query = `SELECT email FROM users WHERE email = $1`;
+        const result = await DatabaseConnection.query(query, [value]);
+        if (result.rowCount === 0) {
+            return true;
+        }
+        throw new Error("Email must be unique");
+    }
+
+    // ----- Schemas -----
     public static registerSchema: Schema = {
         firstName: {
             in: ["body"],
@@ -46,16 +75,7 @@ export class AuthValidator {
             },
             trim: true,
             custom: {
-                options: async (value) => {
-                    const query = `
-            SELECT username FROM users WHERE username = $1
-          `;
-                    const result = await DatabaseConnection.query(query, [value]);
-                    if (result.rowCount === 0) {
-                        return true;
-                    }
-                    throw new Error("Username must be unique");
-                },
+                options: AuthValidator.isUniqueUsername,
                 errorMessage: "Username must be unique",
             },
         },
@@ -69,16 +89,7 @@ export class AuthValidator {
             },
             normalizeEmail: true,
             custom: {
-                options: async (value) => {
-                    const query = `
-                        SELECT email FROM users WHERE email = $1
-                    `;
-                    const result = await DatabaseConnection.query(query, [value]);
-                    if (result.rowCount === 0) {
-                        return true;
-                    }
-                    throw new Error("Email must be unique");
-                },
+                options: AuthValidator.isUniqueEmail,
                 errorMessage: "Email must be unique",
             },
         },
@@ -101,15 +112,7 @@ export class AuthValidator {
                 errorMessage: "Email or username is required",
             },
             custom: {
-                options: (value) => {
-                    // Accept either a valid email or a valid username (alphanumeric, 3-30 chars)
-                    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-                    const isUsername = /^[a-zA-Z0-9_]{3,30}$/.test(value);
-                    if (!isEmail && !isUsername) {
-                        throw new Error("Must be a valid email or username");
-                    }
-                    return true;
-                },
+                options: AuthValidator.isValidUsernameOrEmail,
                 errorMessage: "Must be a valid email or username",
             }
         },
@@ -188,5 +191,54 @@ export class AuthValidator {
             },
             trim: true,
         }
+    }
+
+    public static initiateForgotPasswordSchema: Schema = {
+        loginName: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "Email or username is required",
+            },
+            custom: {
+                options: AuthValidator.isValidUsernameOrEmail,
+                errorMessage: "Must be a valid email or username",
+            }
+        }
+    }
+
+    public static changePasswordSchema: Schema = {
+        loginName: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "Email or username is required",
+            },
+            custom: {
+                options: AuthValidator.isValidUsernameOrEmail,
+                errorMessage: "Must be a valid email or username",
+            }
+        },
+        otp: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "OTP is required"
+            },
+            isLength: {
+                options: { min: 6, max: 6 },
+                errorMessage: "OTP must be 6 digits"
+            },
+            isNumeric: {
+                errorMessage: "OTP must be numeric"
+            }
+        },
+        newPassword: {
+            in: ["body"],
+            notEmpty: {
+                errorMessage: "New password is required",
+            },
+            isLength: {
+                options: { min: 8 },
+                errorMessage: "New password must be at least 8 characters",
+            },
+        },
     }
 };
