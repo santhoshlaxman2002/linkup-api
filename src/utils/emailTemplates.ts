@@ -48,19 +48,28 @@ export class EmailTemplates {
      */
     static generateOtpHtmlTemplate(templateData: EmailTemplateData, otp: string): string {
         return `
-            <div style="font-family: Arial, sans-serif; max-width:400px; margin:auto; padding:24px; border-radius:14px; background:#f7fafc; box-shadow:0 0 28px #e9e9ed;">
-                <h2 style="color:#2e3a59; margin:0 0 16px 0; font-size:24px; font-weight:600;">${templateData.intro}</h2>
-                <p style="font-size:16px; color:#333; margin:0 0 24px 0; line-height:1.5;">${templateData.purpose}</p>
-                
+            <div style="font-family: Arial, sans-serif; max-width:420px; margin:auto; padding:28px; border-radius:14px; background:#f5f3ff; box-shadow:0 0 28px rgba(180,160,255,0.25); border:1px solid #e9d8fd;">
+                <div style="text-align:center; margin-bottom:24px;">
+                    <img src="https://res.cloudinary.com/dd6jffzxq/image/upload/v1760367247/LinkUp_bg_erased_af9j3j.png" 
+                        alt="Linkup Logo" 
+                        style="width:150px; height:150px; display:block; margin:auto; border-radius:10px;">
+                </div>
+                <h2 style="color:#4b0082; margin:0 0 16px 0; font-size:24px; font-weight:700; text-align:center;">
+                    ${templateData.intro}
+                </h2>
+                <p style="font-size:16px; color:#3b0764; margin:0 0 24px 0; line-height:1.6; text-align:center;">
+                    ${templateData.purpose}
+                </p>
                 <div style="display: flex; flex-direction: column; align-items: center; margin:24px 0;">
-                    <div style="font-size:2.2em; letter-spacing:8px; background:white; width:max-content; margin:0 auto; padding:20px 40px; border-radius:12px; border:2px solid #e2e8f0; color:#1e293b; font-weight:700; font-family:'Courier New', monospace; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="font-size:2.2em; letter-spacing:8px; background:#faf5ff; width:max-content; margin:0 auto; padding:20px 40px; border-radius:12px; border:2px solid #d8b4fe; color:#4b0082; font-weight:700; font-family:'Courier New', monospace; box-shadow:0 2px 8px rgba(120,70,200,0.1);">
                         ${otp}
                     </div>
                 </div>
-                
-                <p style="font-size:14px; color:#6b7280; margin:24px 0 0 0; line-height:1.5;">If you didn't request this code, you can safely ignore this email.</p>
-                <hr style="margin:24px 0; border:none; height:1px; background:#e2e8f0;">
-                <div style="font-size:12px; color:#9ca3af; text-align:center;">
+                <p style="font-size:14px; color:#6b21a8; margin:24px 0 0 0; line-height:1.6; text-align:center;">
+                    If you didn’t request this code, you can safely ignore this email.
+                </p>
+                <hr style="margin:24px 0; border:none; height:1px; background:#e9d5ff;">
+                <div style="font-size:12px; color:#a78bfa; text-align:center;">
                     &copy; ${new Date().getFullYear()} Linkup
                 </div>
             </div>
