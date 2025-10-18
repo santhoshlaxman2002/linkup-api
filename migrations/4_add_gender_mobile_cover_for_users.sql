@@ -1,0 +1,3 @@
+ALTER TABLE users ADD COLUMN cover_image TEXT;
+ALTER TABLE users ADD COLUMN gender VARCHAR(20);
+ALTER TABLE users ADD COLUMN mobile_number VARCHAR(20);

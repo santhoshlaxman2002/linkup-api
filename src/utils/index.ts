@@ -6,3 +6,6 @@ export { JwtUtils } from './jwt';
 export { sendMail } from './mailer';
 export { OtpUtils } from './otp';
 export { EmailTemplates } from './emailTemplates';
+export { imageKit } from './imagekit';
+export { AuthMiddleware } from '../middleware/auth';
+export { Validator } from '../middleware/validate';
