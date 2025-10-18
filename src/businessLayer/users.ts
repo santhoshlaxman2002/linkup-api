@@ -46,6 +46,20 @@ export class UsersBL {
     }
 
     /**
+     * Utility: Get user by ID
+     */
+    static async getUserById(userId: string) {
+        const query = `
+            SELECT id, username, first_name, last_name, email, date_of_birth, is_verified, created_at, updated_at, bio, profile_image_url
+            FROM users
+            WHERE id = $1
+        `;
+        const result = await DatabaseConnection.query(query, [userId]);
+        if (result.rowCount === 0) return null;
+        return result.rows[0];
+    }
+
+    /**
      * Utility: Generate candidate usernames by pattern
      */
     static generateUsernameCandidates(base: string, firstName = "", attempt = 1) {

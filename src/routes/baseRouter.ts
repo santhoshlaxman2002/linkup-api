@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { logger, StandardResponse } from "../utils";
+import { AuthMiddleware, logger, StandardResponse } from "../utils";
 import { authRouter } from "../modules/auth";
+import { mediaRouter } from "../modules/media";
+import { profileRouter } from "../modules/profiles";
 
 class BaseRouter {
     private readonly router: Router = Router();
-    
+
     constructor() {
         this.setupRoutes();
     }
@@ -20,6 +22,9 @@ class BaseRouter {
         });
 
         this.router.use('/auth', authRouter);
+        this.router.use(AuthMiddleware.authenticate())
+        this.router.use('/media', mediaRouter);
+        this.router.use('/profiles', profileRouter);
     }
 }
 
