@@ -27,6 +27,24 @@ export class ProfileBL {
         const values = [];
         let paramIndex = 1;
 
+        if (updateData.first_name !== undefined) {
+            fields.push(`first_name = $${paramIndex}`);
+            values.push(updateData.first_name);
+            paramIndex++;
+        }
+
+        if (updateData.last_name !== undefined) {
+            fields.push(`last_name = $${paramIndex}`);
+            values.push(updateData.last_name);
+            paramIndex++;
+        }
+
+        if (updateData.date_of_birth !== undefined) {
+            fields.push(`date_of_birth = $${paramIndex}`);
+            values.push(updateData.date_of_birth);
+            paramIndex++;
+        }
+
         if (updateData.bio !== undefined) {
             fields.push(`bio = $${paramIndex}`);
             values.push(updateData.bio);
