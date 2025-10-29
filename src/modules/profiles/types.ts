@@ -1,5 +1,8 @@
 // Types for profile module
 export interface ProfileUpdateRequest {
+    first_name?: string;
+    last_name?: string;
+    date_of_birth?: string;
     bio?: string;
     mobile_number?: string;
     gender?: string;
