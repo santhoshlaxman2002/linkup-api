@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { logger } from './utils';
 import router from './routes/baseRouter';
+import { DatabaseConnection } from './database/DatabaseConnection';
+import { startNotificationWorker } from './queues/notificationQueue';
 
 // Load environment variables
 dotenv.config();
@@ -28,7 +30,39 @@ app.use((req, res, next) => {
 
 app.use(router.getRouter());
 
-app.listen(port, () => {
-  logger.info(`🚀 API server running on port ${port}`);
-  logger.info(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Connect to database
+    await DatabaseConnection.connect();
+    logger.info('📊 Database connected successfully');
+
+    // Start notification worker
+    startNotificationWorker();
+    logger.info('🔔 Notification worker started');
+
+    // Start server
+    app.listen(port, () => {
+      logger.info(`🚀 API server running on port ${port}`);
+      logger.info(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server', { error });
+    process.exit(1);
+  }
+}
+
+startServer();
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  await DatabaseConnection.close();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  await DatabaseConnection.close();
+  process.exit(0);
 });

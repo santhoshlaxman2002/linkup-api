@@ -3,6 +3,8 @@ import { AuthMiddleware, logger, StandardResponse } from "../utils";
 import { authRouter } from "../modules/auth";
 import { mediaRouter } from "../modules/media";
 import { profileRouter } from "../modules/profiles";
+import { friendRouter } from "../modules/friends";
+import { notificationRouter } from "../modules/notifications";
 
 class BaseRouter {
     private readonly router: Router = Router();
@@ -25,6 +27,8 @@ class BaseRouter {
         this.router.use(AuthMiddleware.authenticate())
         this.router.use('/media', mediaRouter);
         this.router.use('/profiles', profileRouter);
+        this.router.use('/friends', friendRouter);
+        this.router.use('/notifications', notificationRouter);
     }
 }
 
