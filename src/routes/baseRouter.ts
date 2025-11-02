@@ -5,6 +5,7 @@ import { mediaRouter } from "../modules/media";
 import { profileRouter } from "../modules/profiles";
 import { friendRouter } from "../modules/friends";
 import { notificationRouter } from "../modules/notifications";
+import { userRouter } from "../modules/users";
 
 class BaseRouter {
     private readonly router: Router = Router();
@@ -29,6 +30,7 @@ class BaseRouter {
         this.router.use('/profiles', profileRouter);
         this.router.use('/friends', friendRouter);
         this.router.use('/notifications', notificationRouter);
+        this.router.use('/users', userRouter);
     }
 }
 

@@ -1,4 +1,4 @@
-import { sendMail, OtpUtils, EmailTemplates } from "../utils";
+import { sendMail, OtpUtils, EmailTemplates, logger } from "../utils";
 import { DatabaseConnection } from "../database/DatabaseConnection";
 import { v4 as uuidv4 } from "uuid";
 import { MailJobPayloadType } from "@/queues/mail.queue";
@@ -146,4 +146,111 @@ export class UsersBL {
         const emailData = EmailTemplates.generateOtpEmailData(to, otp, type);
         await sendMail(emailData);
     }
+
+    /**
+     * Search users by name or username, ordered by mutual friends count
+     * @param searchTerm - Search term to match against name or username
+     * @param currentUserId - ID of the current user performing the search
+     * @param limit - Maximum number of results to return
+     * @param offset - Number of results to skip
+     * @returns Array of users with mutual friends count
+     */
+    static async searchUsers(
+        searchTerm: string,
+        currentUserId: string,
+        limit: number = 20,
+        offset: number = 0
+    ) {
+        logger.debug("Searching users", { searchTerm, currentUserId, limit, offset });
+
+        const query = `
+          -- Precompute the current user's accepted friends once
+          WITH current_friends AS (
+            SELECT
+              CASE
+                WHEN requester_id = $1 THEN receiver_id
+                ELSE requester_id
+              END AS friend_id
+            FROM friendships
+            WHERE status = 'accepted'
+              AND ($1 = requester_id OR $1 = receiver_id)
+          ),
+      
+          -- Candidate users matching the search
+          search_users AS (
+            SELECT u.*
+            FROM users u
+            WHERE u.id <> $1
+              AND u.is_verified = true
+              AND (
+                u.username ILIKE $2
+                OR u.first_name ILIKE $2
+                OR u.last_name ILIKE $2
+                OR (u.first_name || ' ' || u.last_name) ILIKE $2
+              )
+          )
+      
+          SELECT
+            su.id,
+            su.username,
+            su.first_name,
+            su.last_name,
+            su.profile_image_url,
+            su.bio,
+            COALESCE(mutual_count.count, 0)::INT AS mutual_friends_count,
+            -- is_friend / has_pending_request via left-joined friendship rows
+            CASE WHEN fa.id IS NOT NULL THEN true ELSE false END AS is_friend,
+            CASE WHEN fp.id IS NOT NULL THEN true ELSE false END AS has_pending_request
+          FROM search_users su
+      
+          -- Count mutual friends by joining searched user's accepted friends to current_friends:
+          LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS count
+            FROM (
+              SELECT
+                CASE
+                  WHEN f.requester_id = su.id THEN f.receiver_id
+                  ELSE f.requester_id
+                END AS friend_id
+              FROM friendships f
+              WHERE f.status = 'accepted'
+                AND (f.requester_id = su.id OR f.receiver_id = su.id)
+            ) searched_friends
+            JOIN current_friends cf USING (friend_id)
+          ) mutual_count ON true
+      
+          -- join to see if the current user and the candidate are accepted friends
+          LEFT JOIN friendships fa ON fa.status = 'accepted'
+            AND (
+              (fa.requester_id = $1 AND fa.receiver_id = su.id)
+              OR (fa.requester_id = su.id AND fa.receiver_id = $1)
+            )
+      
+          -- join to see if there is a pending request between current user and candidate
+          LEFT JOIN friendships fp ON fp.status = 'pending'
+            AND (
+              (fp.requester_id = $1 AND fp.receiver_id = su.id)
+              OR (fp.requester_id = su.id AND fp.receiver_id = $1)
+            )
+      
+          ORDER BY mutual_friends_count DESC, su.username ASC
+          LIMIT $3 OFFSET $4
+        `;
+
+        const searchPattern = `%${searchTerm}%`;
+        const result = await DatabaseConnection.query(query, [
+            currentUserId,
+            searchPattern,
+            limit,
+            offset,
+        ]);
+
+        logger.debug("User search completed", {
+            resultCount: result.rows.length,
+            searchTerm,
+        });
+
+        return result.rows;
+    }
+
 }
