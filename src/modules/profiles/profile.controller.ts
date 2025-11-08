@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ProfileBL } from "../../businessLayer";
+import { ProfileBL, UsersBL } from "../../businessLayer";
 import { logger, StandardResponse } from "../../utils";
 import { ProfileUpdateRequest } from "./types";
 
@@ -23,7 +23,7 @@ class ProfileController {
                 userId: req.user.id
             });
 
-            const profile = await ProfileBL.getProfileById(req.user.id);
+            const profile = await ProfileBL.getProfileById(req.user.id, req.user.id);
 
             if (!profile) {
                 logger.warn("Profile not found", {
@@ -42,6 +42,41 @@ class ProfileController {
                 userId: req.user?.id
             });
             return StandardResponse.internalServerError(res, "Failed to retrieve profile", error);
+        }
+    }
+
+    /**
+     * Get user profile by ID
+     */
+    public static async getUserProfile(req: Request, res: Response) {
+        logger.info("Get user profile by ID endpoint called", {
+            userId: req.user?.id
+        });
+
+        if (!req.user) {
+            logger.warn("Get user profile by ID attempted without authentication");
+            return StandardResponse.unauthorized(res, "Authentication required");
+        }
+        if (!req.params.id) {
+            logger.warn("Get user profile by ID attempted without ID");
+            return StandardResponse.badRequest(res, "ID is required");
+        }
+        try {
+            const profile = await ProfileBL.getProfileById(req.params.id, req.user.id);
+            UsersBL.recordUserSearch(req.user.id, req.params.id);
+            if (!profile) {
+                logger.warn("Profile not found", {
+                    userId: req.user.id
+                });
+                return StandardResponse.notFound(res, "Profile not found");
+            }
+            return StandardResponse.success(res, profile, "Profile retrieved successfully");
+        } catch (error) {
+            logger.error("Get user profile by ID failed", {
+                error,
+                userId: req.user?.id
+            });
+            return StandardResponse.internalServerError(res, "Failed to retrieve profile", error);``
         }
     }
 

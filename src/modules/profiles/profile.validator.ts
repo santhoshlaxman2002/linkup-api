@@ -53,6 +53,14 @@ export class ProfileValidator {
             throw new Error("Invalid image URL format");
         }
     };
+    
+    public static getUserProfileSchema: Schema = {
+        id: {
+            in: "params",
+            isUUID: true,
+            errorMessage: "Invalid user ID",
+        },
+    };
 
     // ----- Schemas -----
     public static updateProfileSchema: Schema = {

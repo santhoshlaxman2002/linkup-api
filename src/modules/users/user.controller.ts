@@ -53,6 +53,31 @@ class UserController {
             );
         }
     }
+
+    /**
+     * Get recent user searches for a user
+     * GET /api/users/recent-searches
+     */
+    public static async getRecentUserSearches(req: Request, res: Response) {
+        try {
+            const currentUserId = req.user!.id;
+            const { limit = 10, offset = 0 } = req.query;
+            const results = await UsersBL.getRecentUserSearches(currentUserId, parseInt(offset as string), parseInt(limit as string));
+            return StandardResponse.success(
+                res,
+                results,
+                "Recent user searches retrieved successfully"
+            );
+        }
+        catch (error: any) {
+            logger.error("Error getting recent user searches", { error });
+            return StandardResponse.internalServerError(
+                res,
+                "Failed to get recent user searches",
+                error
+            );
+        }
+    }
 }
 
 export default UserController;

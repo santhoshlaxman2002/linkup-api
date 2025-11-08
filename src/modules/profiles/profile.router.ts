@@ -19,6 +19,13 @@ class ProfileRouter {
             ProfileController.getProfile
         );
 
+        // Get user profile by ID - requires authentication
+        this.router.get(
+            "/:id",
+            Validator.validate(ProfileValidator.getUserProfileSchema),
+            ProfileController.getUserProfile
+        );``
+
         // Update current user's profile - requires authentication
         this.router.put(
             "/",
