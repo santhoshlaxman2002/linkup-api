@@ -63,7 +63,9 @@ class ProfileController {
         }
         try {
             const profile = await ProfileBL.getProfileById(req.params.id, req.user.id);
-            UsersBL.recordUserSearch(req.user.id, req.params.id);
+            if(req.query.component === 'search') {
+                UsersBL.recordUserSearch(req.user.id, req.params.id);
+            }
             if (!profile) {
                 logger.warn("Profile not found", {
                     userId: req.user.id
