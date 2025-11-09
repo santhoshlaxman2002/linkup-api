@@ -300,4 +300,18 @@ export class UsersBL {
     const result = await DatabaseConnection.query(query, [userId, limit, offset]);
     return result.rows;
   }
+
+  static async deleteRecentUserSearch(searcherId: string, searchedUserId: string): Promise<void> {
+    const query = `
+      DELETE FROM recent_user_searches WHERE searcher_id = $1 AND searched_user_id = $2;
+    `;
+    await DatabaseConnection.query(query, [searcherId, searchedUserId]);
+  }
+
+  static async deleteAllRecentUserSearches(searcherId: string): Promise<void> {
+    const query = `
+      DELETE FROM recent_user_searches WHERE searcher_id = $1;
+    `;
+    await DatabaseConnection.query(query, [searcherId]);
+  }
 }

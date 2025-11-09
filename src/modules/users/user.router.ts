@@ -15,9 +15,16 @@ class UserRouter {
         // Search users
         this.router.get("/search", UserController.searchUsers);
         // Get recent user searches
-        this.router.get("/recent-searches", 
+        this.router.get("/recent-searches",
             Validator.validate(UserValidator.getRecentUserSearchesSchema),
             UserController.getRecentUserSearches);
+
+        this.router.delete("/recent-searches",
+            UserController.deleteAllRecentUserSearches);
+
+        this.router.delete("/recent-searches/:searchedUserId",
+            Validator.validate(UserValidator.deleteRecentUserSearchSchema),
+            UserController.deleteRecentUserSearch);
     }
 }
 

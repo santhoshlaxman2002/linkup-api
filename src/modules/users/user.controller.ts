@@ -78,6 +78,55 @@ class UserController {
             );
         }
     }
+
+    /**
+     * Delete recent user searches for a user
+     * DELETE /api/users/recent-searches
+     */
+    public static async deleteRecentUserSearch(req: Request, res: Response) {
+        try {
+            const currentUserId = req.user!.id;
+            const { searchedUserId } = req.params;
+            await UsersBL.deleteRecentUserSearch(currentUserId, searchedUserId as string);
+            return StandardResponse.success(
+                res,
+                null,
+                "Recent user search deleted successfully"
+            );
+        }
+        catch (error: any) {
+            logger.error("Error deleting recent user search", { error });
+            return StandardResponse.internalServerError(
+                res,
+                "Failed to delete recent user search",
+                error
+            );
+        }
+    }
+
+    /**
+     * Delete recent user search for a user
+     * DELETE /api/users/recent-searches/:searchedUserId
+     */
+    public static async deleteAllRecentUserSearches(req: Request, res: Response) {
+        try {
+            const currentUserId = req.user!.id;
+            await UsersBL.deleteAllRecentUserSearches(currentUserId);
+            return StandardResponse.success(
+                res,
+                null,
+                "All recent user searches deleted successfully"
+            );
+        }
+        catch (error: any) {
+            logger.error("Error deleting all recent user searches", { error });
+            return StandardResponse.internalServerError(
+                res,
+                "Failed to delete all recent user searches",
+                error
+            );
+        }
+    }
 }
 
 export default UserController;

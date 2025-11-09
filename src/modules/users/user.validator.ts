@@ -16,4 +16,11 @@ export class UserValidator {
             optional: true
         }
     };
+
+    public static deleteRecentUserSearchSchema: Schema = {
+        searchedUserId: {
+            in: "params",
+            isUUID: true,
+        }
+    };
 }
