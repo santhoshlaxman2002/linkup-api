@@ -165,7 +165,7 @@ export class FriendsBL {
     /**
      * Update friendship status
      * @param friendshipId - ID of the friendship
-     * @param status - New status (pending, accepted, rejected, cancelled)
+     * @param status - New status (pending, accepted)
      * @returns Updated friendship record
      */
     static async updateFriendshipStatus(friendshipId: string, status: string) {
