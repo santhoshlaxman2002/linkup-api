@@ -101,18 +101,18 @@ class FriendController {
                 friendshipId
             });
 
-            const friendship = await FriendService.rejectFriendRequest(
+            await FriendService.rejectFriendRequest(
                 friendshipId,
                 userId
             );
 
             logger.info("Friend request rejected successfully", {
-                friendshipId: friendship.id
+                friendshipId
             });
 
             return StandardResponse.success(
                 res,
-                friendship,
+                null,
                 "Friend request rejected successfully"
             );
         } catch (error: any) {

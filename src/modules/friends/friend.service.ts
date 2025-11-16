@@ -48,6 +48,11 @@ export class FriendService {
             throw new Error("Unauthorized: You can only accept requests sent to you");
         }
 
+        // Verify that the friendship status is pending
+        if (friendship.status !== 'pending') {
+            throw new Error(`Cannot accept friend request. Current status: ${friendship.status}`);
+        }
+
         // Update friendship status
         const updatedFriendship = await FriendsBL.updateFriendshipStatus(
             friendshipId, 
@@ -74,7 +79,7 @@ export class FriendService {
      * Reject a friend request
      * @param friendshipId - ID of the friendship
      * @param userId - ID of the user rejecting the request
-     * @returns Updated friendship record
+     * @returns Boolean indicating success
      */
     static async rejectFriendRequest(friendshipId: string, userId: string) {
         // Get friendship details to verify ownership
@@ -89,11 +94,20 @@ export class FriendService {
             throw new Error("Unauthorized: You can only reject requests sent to you");
         }
 
-        // Update friendship status
-        const updatedFriendship = await FriendsBL.updateFriendshipStatus(
-            friendshipId, 
-            'rejected'
-        );
+        // Verify that the friendship status is pending
+        if (friendship.status !== 'pending') {
+            throw new Error(`Cannot reject friend request. Current status: ${friendship.status}`);
+        }
+
+        // Store requester ID before deletion for notification
+        const requesterId = friendship.requester_id;
+        
+        // Delete the friendship record
+        const deleted = await FriendsBL.deleteFriendship(friendshipId);
+        
+        if (!deleted) {
+            throw new Error("Failed to reject friend request");
+        }
         
         // Get rejecter details for notification
         const rejecter = await FriendsBL.getUserById(userId);
@@ -101,14 +115,14 @@ export class FriendService {
         // Send notification to requester
         if (rejecter) {
             await addNotificationJob({
-                userId: friendship.requester_id,
+                userId: requesterId,
                 senderId: userId,
                 type: NotificationType.FRIEND_REJECTED,
                 message: `${rejecter.username} rejected your friend request`,
             });
         }
         
-        return updatedFriendship;
+        return deleted;
     }
 
     /**
@@ -128,6 +142,11 @@ export class FriendService {
         // Verify that the user is the requester
         if (friendship.requester_id !== userId) {
             throw new Error("Unauthorized: You can only cancel requests you sent");
+        }
+
+        // Verify that the friendship status is pending
+        if (friendship.status !== 'pending') {
+            throw new Error(`Cannot cancel friend request. Current status: ${friendship.status}`);
         }
 
         // Store receiver ID before deletion for notification
@@ -173,6 +192,11 @@ export class FriendService {
         // Verify that the user is part of the friendship
         if (friendship.requester_id !== userId && friendship.receiver_id !== userId) {
             throw new Error("Unauthorized: You can only unfriend your own friends");
+        }
+
+        // Verify that the friendship status is accepted
+        if (friendship.status !== 'accepted') {
+            throw new Error(`Cannot unfriend. Current status: ${friendship.status}`);
         }
 
         // Determine the other user

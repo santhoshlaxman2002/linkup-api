@@ -43,7 +43,7 @@ export class FriendValidator {
         }
 
         // Check if an active friendship already exists (pending or accepted)
-        // Allow re-requesting if previous request was cancelled or rejected
+        // Cancelled and rejected requests are deleted, so re-requesting is always allowed
         if (requesterId && receiverId) {
             const query = `
                 SELECT id FROM friendships
