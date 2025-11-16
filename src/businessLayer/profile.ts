@@ -33,6 +33,7 @@ export class ProfileBL {
             ),
             friendship_status AS (
               SELECT
+                f.id AS friendship_id,
                 CASE
                   WHEN f.status = 'accepted' THEN 'accepted'
                   WHEN f.status = 'pending' AND f.requester_id = $2 THEN 'requested'
@@ -104,7 +105,9 @@ export class ProfileBL {
               COALESCE(
                 (SELECT status FROM friendship_status),
                 'none'
-              ) AS friendship_status
+              ) AS friendship_status,
+              -- friendship id
+              (SELECT friendship_id FROM friendship_status) AS friendship_id
             FROM users u
             WHERE u.id = $1;
         `;
