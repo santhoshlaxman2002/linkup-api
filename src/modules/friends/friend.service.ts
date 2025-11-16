@@ -115,7 +115,7 @@ export class FriendService {
      * Cancel a friend request
      * @param friendshipId - ID of the friendship
      * @param userId - ID of the user cancelling the request
-     * @returns Updated friendship record
+     * @returns Boolean indicating success
      */
     static async cancelFriendRequest(friendshipId: string, userId: string) {
         // Get friendship details to verify ownership
@@ -130,11 +130,15 @@ export class FriendService {
             throw new Error("Unauthorized: You can only cancel requests you sent");
         }
 
-        // Update friendship status
-        const updatedFriendship = await FriendsBL.updateFriendshipStatus(
-            friendshipId, 
-            'cancelled'
-        );
+        // Store receiver ID before deletion for notification
+        const receiverId = friendship.receiver_id;
+        
+        // Delete the friendship record
+        const deleted = await FriendsBL.deleteFriendship(friendshipId);
+        
+        if (!deleted) {
+            throw new Error("Failed to cancel friend request");
+        }
         
         // Get canceller details for notification
         const canceller = await FriendsBL.getUserById(userId);
@@ -142,14 +146,14 @@ export class FriendService {
         // Send notification to receiver
         if (canceller) {
             await addNotificationJob({
-                userId: friendship.receiver_id,
+                userId: receiverId,
                 senderId: userId,
                 type: NotificationType.FRIEND_CANCELLED,
                 message: `${canceller.username} cancelled their friend request`,
             });
         }
         
-        return updatedFriendship;
+        return deleted;
     }
 
     /**

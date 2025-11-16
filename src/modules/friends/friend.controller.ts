@@ -147,18 +147,18 @@ class FriendController {
                 friendshipId
             });
 
-            const friendship = await FriendService.cancelFriendRequest(
+            await FriendService.cancelFriendRequest(
                 friendshipId,
                 userId
             );
 
             logger.info("Friend request cancelled successfully", {
-                friendshipId: friendship.id
+                friendshipId
             });
 
             return StandardResponse.success(
                 res,
-                friendship,
+                null,
                 "Friend request cancelled successfully"
             );
         } catch (error: any) {

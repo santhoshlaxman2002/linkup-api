@@ -42,12 +42,14 @@ export class FriendValidator {
             throw new Error("Cannot send friend request to yourself");
         }
 
-        // Check if friendship already exists
+        // Check if an active friendship already exists (pending or accepted)
+        // Allow re-requesting if previous request was cancelled or rejected
         if (requesterId && receiverId) {
             const query = `
                 SELECT id FROM friendships
-                WHERE (requester_id = $1 AND receiver_id = $2)
-                   OR (requester_id = $2 AND receiver_id = $1)
+                WHERE ((requester_id = $1 AND receiver_id = $2)
+                   OR (requester_id = $2 AND receiver_id = $1))
+                   AND status IN ('pending', 'accepted')
             `;
             const result = await DatabaseConnection.query(query, [requesterId, receiverId]);
             
